@@ -1,0 +1,46 @@
+# Ejemplo de paso de Bitbucket Pipelines que sube un artefacto a
+# artifact-store y dispara el despliegue en el servidor remoto.
+#
+# Variables requeridas (Repository variables):
+#   - ARTIFACT_STORE_URL      : ej. https://artifacts.tu-dominio.com
+#   - ARTIFACT_STORE_API_KEY  : la API_KEY del artifact-store (secured)
+#   - SERVER_HOST             : host del servidor de producción
+#   - SERVER_USER             : usuario SSH del servidor (ej. deploy)
+#
+# Y la SSH key configurada en Repository settings → Pipelines → SSH keys.
+
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Build, upload & deploy
+          services: [docker]
+          size: 2x
+          script:
+            # Build de la imagen
+            - docker build -t my-app:latest ./
+            - docker save my-app:latest | gzip > my-app.tar.gz
+
+            # Subida al artifact-store (sobrescribe la versión anterior)
+            - |
+              curl -sS --fail -X POST \
+                -H "X-API-Key: $ARTIFACT_STORE_API_KEY" \
+                -F "file=@my-app.tar.gz" \
+                "$ARTIFACT_STORE_URL/upload/my-app.tar.gz"
+
+            # Pedir una URL firmada (válida 1 hora)
+            - |
+              SIGNED=$(curl -sS --fail -X POST \
+                -H "X-API-Key: $ARTIFACT_STORE_API_KEY" \
+                "$ARTIFACT_STORE_URL/sign/my-app.tar.gz?expires_in=3600" \
+                | python3 -c "import sys, json; print(json.load(sys.stdin)['url'])")
+              echo "URL firmada generada (caduca en 1 hora)"
+
+            # Disparar el despliegue por SSH (el servidor descarga con la URL firmada)
+            - |
+              ssh $SERVER_USER@$SERVER_HOST << EOF
+                curl -sSL -o /tmp/my-app.tar.gz "$SIGNED"
+                gunzip -c /tmp/my-app.tar.gz | docker load
+                docker compose -f /opt/my-app/docker-compose.yml up -d
+                rm /tmp/my-app.tar.gz
+              EOF

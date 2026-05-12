@@ -1,0 +1,25 @@
+# Ejemplo de despliegue de artifact-store en el servidor.
+# Copiar a `docker-compose.yml` (o integrarlo en el stack existente)
+# y ajustar valores antes de levantar.
+
+services:
+  artifact-store:
+    image: artifact-store:latest
+    build: .
+    container_name: artifact-store
+    ports:
+      - "3008:3008"
+    environment:
+      ENVIRONMENT: production
+      ALLOWED_ORIGINS: "*"
+      STORAGE_PATH: /data
+      # Generar con: openssl rand -hex 32
+      SIGNING_SECRET: ${SIGNING_SECRET}
+      PUBLIC_BASE_URL: https://artifacts.tu-dominio.com
+      DEFAULT_EXPIRES_IN: 3600
+    volumes:
+      - artifact-store-data:/data
+    restart: unless-stopped
+
+volumes:
+  artifact-store-data:
