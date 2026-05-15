@@ -5,6 +5,7 @@ main.py
 Entrada principal de la aplicación FastAPI.
 """
 import os
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -15,13 +16,24 @@ from app import db
 from app.routers import admin, files, health
 from config.constants import ALLOWED_ORIGINS, ENVIRONMENT, ROOT_PATH, STORAGE_PATH
 
-# Asegura que el directorio de almacenamiento exista y arranca la BD
-STORAGE_PATH.mkdir(parents=True, exist_ok=True)
+# Asegura que el directorio de almacenamiento exista y arranca la BD. Si la
+# ruta no es escribible (caso típico: binario nativo arrancado sin configurar
+# STORAGE_PATH, que defaultea a /data en Docker), abortamos con un mensaje
+# claro en lugar de un traceback críptico de mkdir.
+try:
+    STORAGE_PATH.mkdir(parents=True, exist_ok=True)
+except OSError as exc:
+    sys.stderr.write(
+        f"\nerror: STORAGE_PATH={STORAGE_PATH} is not writable ({exc.strerror}).\n"
+        f"Set STORAGE_PATH to a writable directory, e.g.:\n"
+        f"  export STORAGE_PATH=\"$HOME/.artifact-store\"\n\n"
+    )
+    sys.exit(1)
 db.init_schema()
 
 app = FastAPI(
     title="artifact-store",
-    version="0.1.1",
+    version="0.1.2",
     root_path=ROOT_PATH,
 )
 
