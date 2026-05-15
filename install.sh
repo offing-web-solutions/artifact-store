@@ -5,7 +5,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/offing-web-solutions/artifact-store/main/install.sh | sh
 #
 # Env overrides:
-#   ARTIFACT_STORE_VERSION=0.1.0      install a specific version
+#   ARTIFACT_STORE_VERSION=0.1.1      install a specific version
 #   ARTIFACT_STORE_INSTALL_DIR=/opt   install to a custom directory (macOS only)
 #   ARTIFACT_STORE_VARIANT=musl       force musl variant on Linux (Alpine)
 #   ARTIFACT_STORE_VARIANT=gnu        force glibc variant on Linux

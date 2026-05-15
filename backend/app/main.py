@@ -21,7 +21,7 @@ db.init_schema()
 
 app = FastAPI(
     title="artifact-store",
-    version="0.1.0",
+    version="0.1.1",
     root_path=ROOT_PATH,
 )
 

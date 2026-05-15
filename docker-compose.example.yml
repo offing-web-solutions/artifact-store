@@ -4,8 +4,9 @@
 
 services:
   artifact-store:
-    image: artifact-store:latest
-    build: .
+    image: offingwebsolutions/artifact-store:latest
+    # Descomenta `build: .` para construir localmente en lugar de tirar de Docker Hub.
+    # build: .
     container_name: artifact-store
     ports:
       - "3008:3008"

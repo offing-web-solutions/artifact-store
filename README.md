@@ -82,6 +82,9 @@ load them with `docker load -i <file>` and run as in [Docker](#docker).
 
 ### Docker
 
+Multi-arch images (`linux/amd64`, `linux/arm64`) are published to Docker Hub at
+[`offingwebsolutions/artifact-store`](https://hub.docker.com/r/offingwebsolutions/artifact-store).
+
 ```bash
 docker run -d \
   --name artifact-store \
@@ -91,8 +94,10 @@ docker run -d \
   -e STORAGE_PATH=/data \
   -e SIGNING_SECRET=$(openssl rand -hex 32) \
   -e PUBLIC_BASE_URL=http://localhost:3008 \
-  artifact-store:latest
+  offingwebsolutions/artifact-store:latest
 ```
+
+Pin to a specific version with `offingwebsolutions/artifact-store:vX.Y.Z`.
 
 ### From source
 
@@ -114,7 +119,7 @@ A ready-to-edit example lives in [`docker-compose.example.yml`](./docker-compose
 ```yaml
 services:
   artifact-store:
-    image: artifact-store:latest
+    image: offingwebsolutions/artifact-store:latest
     container_name: artifact-store
     restart: unless-stopped
     ports:
@@ -138,7 +143,7 @@ volumes:
 ```yaml
 services:
   artifact-store:
-    image: artifact-store:latest
+    image: offingwebsolutions/artifact-store:latest
     deploy:
       replicas: 1
       placement:

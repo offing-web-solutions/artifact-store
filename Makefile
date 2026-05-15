@@ -13,7 +13,7 @@ DEBUG_PORT     := 5688
 FRONT_PORT     := 5173
 
 # ─── Docker image ──────────────────────────────────────────────────────────
-# Sobreescribibles desde CLI: make build IMAGE=jordi/artifact-store TAG=v0.1.0
+# Sobreescribibles desde CLI: make build IMAGE=jordi/artifact-store TAG=v0.1.1
 IMAGE          ?= artifact-store
 VERSION        ?= $(shell sed -n 's/^version = "\(.*\)"/\1/p' $(BACKEND_DIR)/pyproject.toml | head -n1)
 TAG            ?= $(if $(VERSION),$(VERSION),latest)
