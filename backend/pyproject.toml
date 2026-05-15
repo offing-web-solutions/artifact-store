@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "artifact-store"
-version = "0.1.0"
+version = "0.1.1"
 description = "Almacén ligero de artefactos (imágenes Docker, builds, etc.) con URLs firmadas temporales"
 authors = ["Offing <hola@offing.es>"]
 readme = "README.md"

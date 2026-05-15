@@ -26,3 +26,7 @@ data/
 *.log
 *.md
 !README.md
+
+# macOS
+.DS_Store
+**/.DS_Store

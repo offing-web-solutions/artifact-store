@@ -25,3 +25,7 @@ dist/
 
 # Misc
 .claude/
+
+# macOS
+.DS_Store
+**/.DS_Store
