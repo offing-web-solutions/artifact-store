@@ -1,6 +1,6 @@
 SHELL        := /bin/bash
 .PHONY: help install env start dev stop status logs \
-        build _build-linux _build-linux-musl _build-macos _build-macos-x86_64 \
+        build build-mac _build-linux _build-linux-musl _build-macos _build-macos-x86_64 \
         checksums front-install front-dev clean release
 
 ROOT           := $(shell pwd)
@@ -75,6 +75,7 @@ help:
 	@printf "  \033[2m─────────────────────────────────────────\033[0m\n"
 	@printf "\n"
 	@printf "  \033[1mbuild\033[0m       \033[2m5 Linux Docker + 2 macOS PyInstaller → tarballs en dist/  (patrón make package-all de dock-sight)\033[0m\n"
+	@printf "  \033[1mbuild-mac\033[0m   \033[2msólo binarios macOS (arm64 + amd64 via Rosetta) → tarballs en dist/\033[0m\n"
 	@printf "  \033[1mchecksums\033[0m   \033[2mgenera dist/checksums.txt (SHA256)\033[0m\n"
 	@printf "\n"
 	@printf "  \033[2m   make build PUSH=1 IMAGE=jordi/artifact-store TAG=v$(VERSION)  →  publica al registry\033[0m\n"
@@ -194,6 +195,18 @@ else
 	@echo ""
 endif
 
+## Construye sólo los binarios macOS (arm64 nativo + amd64 via Rosetta).
+## Útil para iterar rápido en el binario sin esperar a los builds Docker.
+build-mac:
+	@if [ "$$(uname -s)" != "Darwin" ]; then \
+		printf "\n  \033[0;31mbuild-mac sólo funciona en macOS$(RESET)\n\n"; exit 1; \
+	fi
+	@$(MAKE) --no-print-directory _build-macos
+	@$(MAKE) --no-print-directory _build-macos-x86_64
+	@echo ""
+	@printf "  $(DIM)tarballs en dist/  ·  make checksums para regenerar SHA256$(RESET)\n"
+	@echo ""
+
 # ── Internal: build Linux Docker images (glibc) ────────────────────────────
 _build-linux:
 	@mkdir -p $(DIST_DIR)
@@ -286,7 +299,7 @@ _build-macos-x86_64:
 	arch -x86_64 $$py -m venv $$venv; \
 	arch -x86_64 $$venv/bin/pip install -q --upgrade pip; \
 	arch -x86_64 $$venv/bin/pip install -q poetry==1.8.3 'pyinstaller>=6.0,<7.0'; \
-	arch -x86_64 $$venv/bin/poetry -C $(BACKEND_DIR) install --only main --no-root -q; \
+	arch -x86_64 env VIRTUAL_ENV=$$venv PATH=$$venv/bin:$$PATH $$venv/bin/poetry -C $(BACKEND_DIR) install --only main --no-root -q; \
 	printf "  $(BADGE)  \033[2mempaquetando...\033[0m\n\n"; \
 	rm -rf $(BACKEND_DIR)/build $(BACKEND_DIR)/dist $(BACKEND_DIR)/artifact-store.spec; \
 	cd $(BACKEND_DIR) && arch -x86_64 .venv-x86_64/bin/pyinstaller --clean --noconfirm \

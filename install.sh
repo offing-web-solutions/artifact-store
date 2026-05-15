@@ -276,13 +276,10 @@ printf "  ${B_GREEN}${BOLD}All done!${RESET}\n"
 printf "\n"
 
 if [ "$OS" = "macos" ]; then
-  printf "  ${BOLD}Configure:${RESET}\n"
-  printf "    ${CYAN}export STORAGE_PATH=\"\$HOME/.artifact-store\"${RESET}\n"
-  printf "    ${CYAN}export SIGNING_SECRET=\$(openssl rand -hex 32)${RESET}\n"
-  printf "    ${CYAN}export PUBLIC_BASE_URL=http://localhost:3008${RESET}\n"
-  printf "    ${CYAN}mkdir -p \"\$STORAGE_PATH\"${RESET}\n"
-  printf "\n"
   printf "  ${BOLD}Start:${RESET}  ${CYAN}${BINARY}${RESET}\n"
+  printf "\n"
+  printf "  ${DIM}Data is stored under ~/.artifact-store by default.${RESET}\n"
+  printf "  ${DIM}Override with STORAGE_PATH, PUBLIC_BASE_URL or SIGNING_SECRET.${RESET}\n"
 else
   printf "  ${BOLD}Start:${RESET}\n"
   printf "    ${CYAN}docker run -d \\\\${RESET}\n"
