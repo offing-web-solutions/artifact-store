@@ -40,7 +40,8 @@ RUN poetry install --only main --no-root
 FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    ENVIRONMENT=production
 
 WORKDIR /app/backend
 
