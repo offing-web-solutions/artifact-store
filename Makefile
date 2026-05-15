@@ -1,7 +1,7 @@
 SHELL        := /bin/bash
 .PHONY: help install env start dev stop status logs \
         build build-mac _build-linux _build-linux-musl _build-macos _build-macos-x86_64 \
-        checksums front-install front-dev clean release
+        checksums front-install front-dev clean release version set-version
 
 ROOT           := $(shell pwd)
 BACKEND_DIR    := $(ROOT)/backend
@@ -15,7 +15,8 @@ FRONT_PORT     := 5173
 # ─── Docker image ──────────────────────────────────────────────────────────
 # Sobreescribibles desde CLI: make build IMAGE=jordi/artifact-store TAG=v0.1.1
 IMAGE          ?= artifact-store
-VERSION        ?= $(shell sed -n 's/^version = "\(.*\)"/\1/p' $(BACKEND_DIR)/pyproject.toml | head -n1)
+# Fuente única de verdad: VERSION en la raíz. set-version la propaga al resto.
+VERSION        ?= $(shell cat $(ROOT)/VERSION 2>/dev/null | tr -d '[:space:]')
 TAG            ?= $(if $(VERSION),$(VERSION),latest)
 PLATFORMS      ?= linux/amd64,linux/arm64
 DIST_DIR       ?= $(ROOT)/dist
@@ -74,9 +75,14 @@ help:
 	@printf "\n"
 	@printf "  \033[2m─────────────────────────────────────────\033[0m\n"
 	@printf "\n"
-	@printf "  \033[1mbuild\033[0m       \033[2m5 Linux Docker + 2 macOS PyInstaller → tarballs en dist/  (patrón make package-all de dock-sight)\033[0m\n"
-	@printf "  \033[1mbuild-mac\033[0m   \033[2msólo binarios macOS (arm64 + amd64 via Rosetta) → tarballs en dist/\033[0m\n"
-	@printf "  \033[1mchecksums\033[0m   \033[2mgenera dist/checksums.txt (SHA256)\033[0m\n"
+	@printf "  \033[1mbuild\033[0m         \033[2m5 Linux Docker + 2 macOS PyInstaller → tarballs en dist/  (patrón make package-all de dock-sight)\033[0m\n"
+	@printf "  \033[1mbuild-mac\033[0m     \033[2msólo binarios macOS (arm64 + amd64 via Rosetta) → tarballs en dist/\033[0m\n"
+	@printf "  \033[1mchecksums\033[0m     \033[2mgenera dist/checksums.txt (SHA256)\033[0m\n"
+	@printf "\n"
+	@printf "  \033[2m─────────────────────────────────────────\033[0m\n"
+	@printf "\n"
+	@printf "  \033[1mversion\033[0m       \033[2mmuestra la versión actual ($(VERSION))\033[0m\n"
+	@printf "  \033[1mset-version\033[0m   \033[2mpropaga una nueva versión a todos los ficheros  ($(DIM)make set-version NEW=x.y.z$(RESET))\033[0m\n"
 	@printf "\n"
 	@printf "  \033[2m   make build PUSH=1 IMAGE=jordi/artifact-store TAG=v$(VERSION)  →  publica al registry\033[0m\n"
 	@printf "\n"
@@ -194,6 +200,38 @@ else
 	@printf "  $(DIM)docker load -i dist/<archivo>.tar.gz · make checksums$(RESET)\n"
 	@echo ""
 endif
+
+## Muestra la versión actual leída de VERSION.
+version:
+	@printf "  artifact-store $(BOLD)v$(VERSION)$(RESET)\n"
+	@printf "  $(DIM)source: $(ROOT)/VERSION$(RESET)\n"
+	@printf "\n"
+	@printf "  $(DIM)bump:   make set-version NEW=x.y.z$(RESET)\n"
+
+## Propaga una nueva versión a VERSION, pyproject.toml, package.json y app.main.
+## Uso:  make set-version NEW=0.1.3
+set-version:
+	@if [ -z "$(NEW)" ]; then \
+		printf "\n  $(BOLD)error$(RESET)  falta NEW (ej: $(DIM)make set-version NEW=0.1.3$(RESET))\n\n"; exit 1; \
+	fi
+	@if ! echo "$(NEW)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$'; then \
+		printf "\n  $(BOLD)error$(RESET)  NEW=$(NEW) no parece semver (x.y.z)\n\n"; exit 1; \
+	fi
+	@old="$(VERSION)"; new="$(NEW)"; \
+	if [ "$$old" = "$$new" ]; then \
+		printf "\n  $(DIM)ya está en v$$new — nada que hacer$(RESET)\n\n"; exit 0; \
+	fi; \
+	printf "\n  $(BADGE)  bump  $(DIM)v$$old$(RESET)  →  $(BOLD)v$$new$(RESET)\n\n"; \
+	printf "$$new\n" > $(ROOT)/VERSION; \
+	sed -i.bak -E 's/^version = "[^"]+"/version = "'"$$new"'"/' $(BACKEND_DIR)/pyproject.toml && rm $(BACKEND_DIR)/pyproject.toml.bak; \
+	sed -i.bak -E 's/"version": "[^"]+"/"version": "'"$$new"'"/' $(FRONTEND_DIR)/package.json && rm $(FRONTEND_DIR)/package.json.bak; \
+	sed -i.bak -E 's/version="[^"]+"/version="'"$$new"'"/' $(BACKEND_DIR)/app/main.py && rm $(BACKEND_DIR)/app/main.py.bak; \
+	printf "  $(DIM)updated:$(RESET)\n"; \
+	printf "    VERSION                  → $$new\n"; \
+	printf "    backend/pyproject.toml   → version = \"$$new\"\n"; \
+	printf "    frontend/package.json    → \"version\": \"$$new\"\n"; \
+	printf "    backend/app/main.py      → version=\"$$new\"\n"; \
+	printf "\n  $(DIM)review with$(RESET)  git diff  $(DIM)then commit & tag v$$new$(RESET)\n\n"
 
 ## Construye sólo los binarios macOS (arm64 nativo + amd64 via Rosetta).
 ## Útil para iterar rápido en el binario sin esperar a los builds Docker.

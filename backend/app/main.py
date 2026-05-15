@@ -33,14 +33,19 @@ db.init_schema()
 
 app = FastAPI(
     title="artifact-store",
-    version="0.1.2",
+    version="0.1.3",
     root_path=ROOT_PATH,
 )
 
-# Habilitar el servidor de depuración solo en desarrollo
+# Habilitar el servidor de depuración solo en desarrollo. debugpy es una dev
+# dependency: si la imagen Docker / binario nativo arranca con ENVIRONMENT=local
+# pero sin debugpy instalado, seguimos sin él (no es un fallo crítico).
 if ENVIRONMENT == "local":
-    import debugpy
-    debugpy.listen(("localhost", 5688))
+    try:
+        import debugpy
+        debugpy.listen(("localhost", 5688))
+    except ImportError:
+        pass
 
 origins = ["*"] if ENVIRONMENT == "local" else ALLOWED_ORIGINS.split(",")
 app.add_middleware(
