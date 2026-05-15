@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "artifact-store"
+version = "0.1.0"
+description = "Almacén ligero de artefactos (imágenes Docker, builds, etc.) con URLs firmadas temporales"
+authors = ["Offing <hola@offing.es>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.0"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
+python-multipart = "^0.0.12"
+aiofiles = "^24.1.0"
+python-dotenv = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+httpx = "^0.27.0"
+debugpy = "^1.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

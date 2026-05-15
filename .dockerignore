@@ -1,0 +1,28 @@
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
+backend/.env.local
+*.pyc
+
+# Node / frontend build (regenerados dentro del Dockerfile)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Git / CI / IDE
+.git/
+.github/
+.vscode/
+.idea/
+.claude/
+
+# Runtime
+data/
+.logs/
+
+# Docs y artefactos varios
+*.log
+*.md
+!README.md
